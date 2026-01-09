@@ -12,16 +12,18 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 const allowedOrigins = [
-  process.env.CLIENT_URL   // Production Frontend URL
-].filter(Boolean) as string[];
+  (process.env.CLIENT_URL || '').replace(/\/$/, "") // Remove trailing slash if present
+].filter(Boolean);
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl requests)
+    // Allow requests with no origin (like mobile apps, curl, or cron jobs)
     if (!origin) return callback(null, true);
+
     if (allowedOrigins.includes(origin) || !process.env.CLIENT_URL) {
       callback(null, true);
     } else {
+      console.log(`[CORS Blocked] Origin: ${origin}, Allowed: ${allowedOrigins}`); // Debug Log
       callback(new Error('Not allowed by CORS'));
     }
   },
